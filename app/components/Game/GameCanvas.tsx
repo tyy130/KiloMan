@@ -56,6 +56,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setGameState, jumpMo
   const monstersRef = useRef<MonsterState[]>([]);
   const keysRef = useRef<{ [key: string]: boolean }>({});
   const logoRef = useRef<HTMLImageElement | null>(null);
+  const avatarRef = useRef<HTMLImageElement | null>(null);
 
   // Load Logo
   useEffect(() => {
@@ -63,6 +64,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setGameState, jumpMo
     img.src = '/KiloLogo.png';
     img.onload = () => {
       logoRef.current = img;
+    };
+  }, []);
+
+  // Load Avatar
+  useEffect(() => {
+    const img = new Image();
+    img.src = 'https://github.com/tyy130.png';
+    img.onload = () => {
+      avatarRef.current = img;
     };
   }, []);
 
@@ -226,30 +236,40 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ gameState, setGameState, jumpMo
     ctx.ellipse(cx, y + p.height, p.width / 1.5, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Body Color
-    ctx.fillStyle = '#eab308'; // Yellow 500
+    // Draw Avatar Image if loaded, otherwise fallback to shape
+    if (avatarRef.current) {
+      // Flip the image based on facing direction
+      ctx.save();
+      ctx.translate(cx, y + p.height / 2);
+      ctx.scale(p.facing, 1);
+      ctx.drawImage(avatarRef.current, -p.width / 2, -p.height / 2, p.width, p.height);
+      ctx.restore();
+    } else {
+      // Body Color
+      ctx.fillStyle = '#eab308'; // Yellow 500
 
-    // Animation Offset
-    const bob = Math.sin(frameCountRef.current * 0.2) * (Math.abs(p.vx) > 0.1 ? 3 : 1);
+      // Animation Offset
+      const bob = Math.sin(frameCountRef.current * 0.2) * (Math.abs(p.vx) > 0.1 ? 3 : 1);
 
-    // Legs
-    const legOffset = Math.sin(frameCountRef.current * 0.4) * 10 * (Math.abs(p.vx) > 0.1 ? 1 : 0);
-    ctx.fillRect(cx - 8 + legOffset, y + 30, 6, 20); // Left Leg
-    ctx.fillRect(cx + 2 - legOffset, y + 30, 6, 20); // Right Leg
+      // Legs
+      const legOffset = Math.sin(frameCountRef.current * 0.4) * 10 * (Math.abs(p.vx) > 0.1 ? 1 : 0);
+      ctx.fillRect(cx - 8 + legOffset, y + 30, 6, 20); // Left Leg
+      ctx.fillRect(cx + 2 - legOffset, y + 30, 6, 20); // Right Leg
 
-    // Torso
-    ctx.fillRect(cx - 10, y + 15 + bob, 20, 20);
+      // Torso
+      ctx.fillRect(cx - 10, y + 15 + bob, 20, 20);
 
-    // Head
-    ctx.fillStyle = '#fef08a'; // Yellow 200
-    ctx.beginPath();
-    ctx.arc(cx, y + 10 + bob, 12, 0, Math.PI * 2);
-    ctx.fill();
+      // Head
+      ctx.fillStyle = '#fef08a'; // Yellow 200
+      ctx.beginPath();
+      ctx.arc(cx, y + 10 + bob, 12, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Eyes (Directional)
-    ctx.fillStyle = '#000';
-    const eyeDir = p.facing === 1 ? 4 : -4;
-    ctx.fillRect(cx + eyeDir - 2, y + 8 + bob, 4, 4);
+      // Eyes (Directional)
+      ctx.fillStyle = '#000';
+      const eyeDir = p.facing === 1 ? 4 : -4;
+      ctx.fillRect(cx + eyeDir - 2, y + 8 + bob, 4, 4);
+    }
 
     ctx.restore();
   };
